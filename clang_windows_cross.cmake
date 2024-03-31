@@ -1,0 +1,62 @@
+# Cross toolchain configuration for using clang-cl.
+
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_VERSION 10.0)
+set(CMAKE_SYSTEM_PROCESSOR AMD64)
+
+set(CMAKE_C_COMPILER "clang-cl")
+set(CMAKE_CXX_COMPILER "clang-cl")
+set(CMAKE_LINKER "lld-link")
+
+# set(MSVC_BASE "/home/joshua/projects/cross-compile-for-windows-from-wsl/14.29.30037")
+set(MSVC_BASE "/mnt/c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2022/BuildTools/VC/Tools/MSVC/14.38.33130")
+# set(MSVC_BASE "/opt/msvc/VC/Tools/MSVC/14.29.30037")
+set(MSVC_INCLUDE "${MSVC_BASE}/include")
+set(MSVC_LIB "${MSVC_BASE}/lib")
+
+# set(WINSDK_BASE "/home/joshua/projects/cross-compile-for-windows-from-wsl/10")
+set(WINSDK_BASE "/mnt/c/Program\ Files\ \(x86\)/Windows\ Kits/10")
+# set(WINSDK_BASE "/opt/msvc/Program\ Files/Windows\ Kits/10")
+set(WINSDK_VER "10.0.22621.0")
+set(WINSDK_INCLUDE "${WINSDK_BASE}/Include/${WINSDK_VER}")
+set(WINSDK_LIB "${WINSDK_BASE}/Lib/${WINSDK_VER}")
+
+set(COMPILE_FLAGS
+  -D_CRT_SECURE_NO_WARNINGS
+  -imsvc "'${MSVC_INCLUDE}'"
+  -imsvc "'${WINSDK_INCLUDE}/ucrt'"
+  -imsvc "'${WINSDK_INCLUDE}/shared'"
+  -imsvc "'${WINSDK_INCLUDE}/um'"
+  -imsvc "'${WINSDK_INCLUDE}/winrt'"
+)
+
+string(REPLACE ";" " " COMPILE_FLAGS "${COMPILE_FLAGS}")
+
+set(_CMAKE_C_FLAGS_INITIAL "${CMAKE_C_FLAGS}" CACHE STRING "")
+set(CMAKE_C_FLAGS "${_CMAKE_C_FLAGS_INITIAL} ${COMPILE_FLAGS}" CACHE STRING "" FORCE)
+
+set(_CMAKE_CXX_FLAGS_INITIAL "${CMAKE_C_FLAGS}" CACHE STRING "")
+set(CMAKE_CXX_FLAGS "${_CMAKE_CXX_FLAGS_INITIAL} ${COMPILE_FLAGS}" CACHE STRING "" FORCE)
+
+set(LINK_FLAGS
+  /manifest:no
+  -libpath:"${MSVC_LIB}/x64"
+  -libpath:"${WINSDK_LIB}/ucrt/x64"
+  -libpath:"${WINSDK_LIB}/um/x64"
+)
+
+string(REPLACE ";" " " LINK_FLAGS "${LINK_FLAGS}")
+
+set(_CMAKE_EXE_LINKER_FLAGS_INITIAL "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
+set(CMAKE_EXE_LINKER_FLAGS "${_CMAKE_EXE_LINKER_FLAGS_INITIAL} ${LINK_FLAGS}" CACHE STRING "" FORCE)
+
+set(_CMAKE_MODULE_LINKER_FLAGS_INITIAL "${CMAKE_MODULE_LINKER_FLAGS}" CACHE STRING "")
+set(CMAKE_MODULE_LINKER_FLAGS "${_CMAKE_MODULE_LINKER_FLAGS_INITIAL} ${LINK_FLAGS}" CACHE STRING "" FORCE)
+
+set(_CMAKE_SHARED_LINKER_FLAGS_INITIAL "${CMAKE_SHARED_LINKER_FLAGS}" CACHE STRING "")
+set(CMAKE_SHARED_LINKER_FLAGS "${_CMAKE_SHARED_LINKER_FLAGS_INITIAL} ${LINK_FLAGS}" CACHE STRING "" FORCE)
+
+set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
